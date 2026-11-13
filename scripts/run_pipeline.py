@@ -199,6 +199,21 @@ def run_pipeline(
             numeric_features=search["selected_numeric_features"]["xgboost"],
         )
         model_infos.append(("pytorch_mlp", "PyTorch Embedding MLP", mlp, mp, mt, True))
+        print("Training Phase 2 Hybrid ML-DL Model (XGBoost + PyTorch Deep Learning)...", flush=True)
+        from src.train import train_hybrid_model
+        hybrid, ht, _ = train_hybrid_model(
+            xgb_model=xgb,
+            xgb_prep=xgb_prep,
+            dl_model=mlp,
+            dl_prep=mp,
+            fitted_df=fitted,
+            val_df=cal_fit,
+            hyperparams=hp,
+            random_seed=random_seed,
+            output_dir=models_dir,
+            device=torch.device("cpu"),
+        )
+        model_infos.append(("hybrid_model", "Hybrid ML-DL Model", hybrid, (xgb_prep, mp), ht, "hybrid"))
     elif any(models_dir.glob("pytorch_mlp*")):
         raise ValueError(
             "Existing MLP artifacts would become stale. Include MLP or use a fresh models directory."
@@ -224,11 +239,17 @@ def run_pipeline(
         "prediction_horizon_hours": 2,
         "historical_reporting_lag_hours": 24,
         "supplementary_models": ["pytorch_mlp"] if include_mlp else [],
+        "hybrid_models": ["hybrid_model"] if include_mlp else [],
     }
     save_json(models_dir / "bundle_metadata.json", bundle)
 
-    def probabilities(model, preprocessor, frame, pytorch):
-        if pytorch:
+    def probabilities(model, preprocessor, frame, is_pytorch):
+        if is_pytorch == "hybrid":
+            xp, dp = preprocessor
+            X_xgb = xp.transform(frame[ALL_MODEL_FEATURES])
+            c, n, _ = dp.transform(frame[ALL_MODEL_FEATURES])
+            return model.predict_proba(X_xgb, c, n)
+        elif is_pytorch:
             c, n, _ = preprocessor.transform(frame[ALL_MODEL_FEATURES])
             return model.predict_proba(c, n)
         return model.predict_proba(preprocessor.transform(frame[ALL_MODEL_FEATURES]))
@@ -340,6 +361,75 @@ def run_pipeline(
             fitted, blocks["calibration_selection"], hyperparams, random_seed
         )
     ).to_csv(metrics_dir / "feature_ablation.csv", index=False)
+
+    if include_mlp:
+        print(
+            "Running Phase 2 Deep Learning & Hybrid ablation studies...",
+            flush=True,
+        )
+        from src.ablation import (
+            run_hybrid_paradigm_ablation,
+            run_architecture_ablation,
+            run_regularization_ablation,
+            plot_ablation_summary,
+        )
+
+        val_frame = blocks["calibration_selection"]
+        X_xgb_val = xgb_prep.transform(val_frame[ALL_MODEL_FEATURES])
+        c_val, n_val, _ = mp.transform(val_frame[ALL_MODEL_FEATURES])
+        xgb_m_val = xgb.predict_margin(X_xgb_val)
+        dl_l_val = mlp.predict_logits(c_val, n_val)
+        y_val = val_frame.is_delayed.to_numpy()
+
+        ablation_records = []
+        ablation_records.extend(
+            run_hybrid_paradigm_ablation(xgb_m_val, dl_l_val, y_val, random_seed)
+        )
+
+        sample_n = min(12000, len(fitted))
+        sub_train = fitted.sample(n=sample_n, random_state=random_seed)
+        c_train, n_train, yt_train = mp.transform(
+            sub_train[ALL_MODEL_FEATURES], sub_train.is_delayed.to_numpy()
+        )
+        val_sub_n = min(4000, len(val_frame))
+        sub_val = val_frame.sample(n=val_sub_n, random_state=random_seed)
+        c_v_sub, n_v_sub, yt_v_sub = mp.transform(
+            sub_val[ALL_MODEL_FEATURES], sub_val.is_delayed.to_numpy()
+        )
+
+        ablation_records.extend(
+            run_architecture_ablation(
+                c_train,
+                n_train,
+                yt_train,
+                c_v_sub,
+                n_v_sub,
+                yt_v_sub.numpy().flatten(),
+                mp.vocab_sizes,
+                len(mp.numeric_features),
+                epochs=3,
+                random_seed=random_seed,
+            )
+        )
+        ablation_records.extend(
+            run_regularization_ablation(
+                c_train,
+                n_train,
+                yt_train,
+                c_v_sub,
+                n_v_sub,
+                yt_v_sub.numpy().flatten(),
+                mp.vocab_sizes,
+                len(mp.numeric_features),
+                epochs=3,
+                random_seed=random_seed,
+            )
+        )
+
+        df_ablation = pd.DataFrame(ablation_records)
+        df_ablation.to_csv(metrics_dir / "ablation_studies.csv", index=False)
+        save_json(metrics_dir / "ablation_studies.json", ablation_records)
+        plot_ablation_summary(df_ablation, figures / "ablation_comparison.png")
     slices = []
     for key, pf in prediction_frames.items():
         for column in ["origin", "carrier", "sched_dep_hour", "flight_date"]:
@@ -459,7 +549,7 @@ def run_pipeline(
         ),
         "elapsed_seconds": round(time.time() - started, 2),
         "test_reuse_disclosure": "The original test results were inspected during review. This is a corrected retrospective reevaluation, not a newly untouched external test.",
-        "phase_scope": "Logistic Regression and XGBoost are the Phase 1 ML models. MLP is supplementary.",
+        "phase_scope": "Phase 2 Deep Learning and Hybrid ML-DL Evaluation. Models: Logistic Regression, XGBoost, PyTorch Embedding MLP, and Hybrid ML-DL Model (Gated Stacking).",
     }
     save_json(results_dir / "run_summary.json", summary)
     legacy_preprocessor = models_dir / "tabular_preprocessor.pkl"

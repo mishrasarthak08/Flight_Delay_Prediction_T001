@@ -51,6 +51,10 @@ class FlightDelayPredictor:
             "lr": "logistic_regression",
             "mlp": "pytorch_mlp",
             "pytorch": "pytorch_mlp",
+            "resnet": "pytorch_deep_resnet",
+            "deep_resnet": "pytorch_deep_resnet",
+            "hybrid": "hybrid_model",
+            "hybrid_ml_dl": "hybrid_model",
         }
         self.model_name = aliases.get(model_name.lower(), model_name.lower())
         self.models_dir = Path(models_dir)
@@ -136,9 +140,55 @@ class FlightDelayPredictor:
                 self.models_dir / "pytorch_mlp.pt", device=self.device
             )
             self.is_pytorch = True
+            self.is_hybrid = False
+
+        elif self.model_name in ("pytorch_deep_resnet", "resnet"):
+            from src.preprocessing import PyTorchPreprocessor
+            from src.models import FlightDeepResNet
+
+            self.preprocessor = PyTorchPreprocessor.load(
+                self.models_dir / "pytorch_preprocessor.pkl"
+            )
+            self.model = FlightDeepResNet.load_checkpoint(
+                self.models_dir / "pytorch_deep_resnet.pt", device=self.device
+            )
+            self.is_pytorch = True
+            self.is_hybrid = False
+
+        elif self.model_name in ("hybrid_model", "hybrid"):
+            from src.preprocessing import FlightTabularPreprocessor, PyTorchPreprocessor
+            from src.models import FlightDeepResNet, FlightEmbeddingMLP, HybridFlightDelayModel
+
+            with open(self.models_dir / "xgboost.pkl", "rb") as f:
+                self.xgb_model = pickle.load(f)
+            self.xgb_preprocessor = FlightTabularPreprocessor.load(
+                self.models_dir / "xgboost_preprocessor.pkl"
+            )
+
+            self.dl_preprocessor = PyTorchPreprocessor.load(
+                self.models_dir / "pytorch_preprocessor.pkl"
+            )
+            resnet_path = self.models_dir / "pytorch_deep_resnet.pt"
+            if resnet_path.exists():
+                self.dl_model = FlightDeepResNet.load_checkpoint(
+                    resnet_path, device=self.device
+                )
+            else:
+                self.dl_model = FlightEmbeddingMLP.load_checkpoint(
+                    self.models_dir / "pytorch_mlp.pt", device=self.device
+                )
+
+            self.model = HybridFlightDelayModel.load(
+                self.models_dir / "hybrid_model.pkl",
+                xgb_model=self.xgb_model,
+                dl_model=self.dl_model,
+            )
+            self.is_pytorch = False
+            self.is_hybrid = True
+
         else:
             raise ValueError(
-                f"Unknown model_name: {model_name}. Choose 'xgboost', 'logistic_regression', or 'pytorch_mlp'."
+                f"Unknown model_name: {model_name}. Choose 'xgboost', 'logistic_regression', 'pytorch_mlp', 'pytorch_deep_resnet', or 'hybrid_model'."
             )
 
     def preprocess_raw_input(self, input_df: pd.DataFrame) -> pd.DataFrame:
@@ -208,7 +258,11 @@ class FlightDelayPredictor:
             CATEGORICAL_FEATURES + NUMERIC_SCHEDULE_FEATURES + HISTORICAL_FEATURES
         )
 
-        if self.is_pytorch:
+        if getattr(self, "is_hybrid", False):
+            X_trans_xgb = self.xgb_preprocessor.transform(df_full[feature_cols])
+            c_tens, n_tens, _ = self.dl_preprocessor.transform(df_full[feature_cols])
+            probs_raw = self.model.predict_proba(X_trans_xgb, c_tens, n_tens, device=self.device)
+        elif self.is_pytorch:
             c_tens, n_tens, _ = self.preprocessor.transform(df_full[feature_cols])
             probs_raw = self.model.predict_proba(c_tens, n_tens, device=self.device)
         else:

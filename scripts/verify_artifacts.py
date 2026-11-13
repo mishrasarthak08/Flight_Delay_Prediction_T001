@@ -26,6 +26,7 @@ def main():
         "Logistic Regression": "logistic_regression",
         "XGBoost": "xgboost",
         "PyTorch Embedding MLP": "pytorch_mlp",
+        "Hybrid ML-DL Model": "hybrid_model",
     }
     raw = load_raw_dataset()
     checks = []

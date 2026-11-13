@@ -46,7 +46,7 @@ def plot_roc_curves(
     output_path.parent.mkdir(parents=True, exist_ok=True)
     fig, ax = plt.subplots(figsize=(8, 6))
 
-    colors = ["#2b5c8f", "#d95f02", "#7570b3"]
+    colors = ["#2b5c8f", "#d95f02", "#7570b3", "#1b9e77", "#e7298a", "#66a61e"]
 
     for (name, (p_raw, _)), color in zip(models_predictions.items(), colors):
         fpr, tpr, _ = roc_curve(y_test, p_raw)
@@ -78,7 +78,7 @@ def plot_pr_curves(
     output_path.parent.mkdir(parents=True, exist_ok=True)
     fig, ax = plt.subplots(figsize=(8, 6))
 
-    colors = ["#2b5c8f", "#d95f02", "#7570b3"]
+    colors = ["#2b5c8f", "#d95f02", "#7570b3", "#1b9e77", "#e7298a", "#66a61e"]
     prevalence = float(np.mean(y_test))
 
     for (name, (p_raw, _)), color in zip(models_predictions.items(), colors):
@@ -116,7 +116,7 @@ def plot_calibration_curves(
     output_path.parent.mkdir(parents=True, exist_ok=True)
     fig, ax = plt.subplots(figsize=(8, 6))
 
-    colors = ["#2b5c8f", "#d95f02", "#7570b3"]
+    colors = ["#2b5c8f", "#d95f02", "#7570b3", "#1b9e77", "#e7298a", "#66a61e"]
 
     for m, color in zip(all_metrics, colors):
         name = m["model_name"]
