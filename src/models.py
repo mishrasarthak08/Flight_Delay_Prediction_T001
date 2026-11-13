@@ -83,8 +83,10 @@ class XGBoostModel:
             X_val_c = np.ascontiguousarray(X_val, dtype=np.float32)
             y_val_c = np.ascontiguousarray(y_val, dtype=np.float32)
             eval_set = [(X_val_c, y_val_c)]
+            self.model.set_params(early_stopping_rounds=self.hyperparams.xgb_early_stopping_rounds)
         else:
             eval_set = None
+            self.model.set_params(early_stopping_rounds=None)
 
         self.model.fit(
             X_train_c,
