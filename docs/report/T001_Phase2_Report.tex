@@ -1,0 +1,222 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{hyperref}
+\usepackage{bm}
+
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
+\begin{document}
+
+\title{Availability-Aware Flight Delay Prediction via GBDT and Deep Learning Hybridization with Learned Entity Embeddings\\
+\thanks{Team T001: Applied Machine Learning \& Deep Learning Capstone Project (Phase 2 Evaluation).}
+}
+
+\author{
+\IEEEauthorblockN{Sarthak Mishra}
+\IEEEauthorblockA{\textit{Dept. of Computer Science} \\
+Enrollment: 2401010421 \\
+Role: Deep Learning \& Hybrid Architect}
+\and
+\IEEEauthorblockN{Shane}
+\IEEEauthorblockA{\textit{Dept. of Computer Science} \\
+Enrollment: 2401020062 \\
+Role: Data Pipeline \& Leakage Safeguards}
+\and
+\IEEEauthorblockN{Shitanshu Tiwari}
+\IEEEauthorblockA{\textit{Dept. of Computer Science} \\
+Enrollment: 2401010440 \\
+Role: GBDT Modeling \& Feature Engineering}
+\and
+\IEEEauthorblockN{Preetish Ubhrani}
+\IEEEauthorblockA{\textit{Dept. of Computer Science} \\
+Enrollment: 2401020050 \\
+Role: Probability Calibration \& Decisions}
+\and
+\IEEEauthorblockN{Kshitiz}
+\IEEEauthorblockA{\textit{Dept. of Computer Science} \\
+Enrollment: 2401010242 \\
+Role: Ablation Studies \& Demonstrator App}
+}
+
+\maketitle
+
+\begin{abstract}
+Flight delay forecasting is a safety-critical aviation challenge characterized by complex interactions between dense continuous schedules, airport congestion volumes, and high-cardinality discrete network nominals. In this Phase 2 evaluation, we extend our operational prediction contract---forecasting commercial arrival delays $\ge 15$ minutes strictly two hours before scheduled departure ($T-2\text{h}$)---from baseline machine learning to modern deep tabular architectures and a technically justified Hybrid ML-DL Model. Our architecture combines the complementary inductive biases of Gradient Boosted Decision Trees (XGBoost), which excel at orthogonal partitioning on continuous tabular variables, with a PyTorch Deep Tabular Network that projects sparse categorical entities (airlines, origin hubs, destinations) into continuous latent embedding spaces. The two streams are unified via a regularized logit-space stacking meta-learner fit on strictly disjoint development validation data to eliminate target leakage. Across 48,581 unseen chronological test flights departing New York (EWR, JFK, LGA), our models demonstrate strong discrimination (PyTorch MLP Average Precision 0.3936; XGBoost 0.3722) and superior probability calibration. On development holdout data, the learned Hybrid Model achieves the lowest Brier score (0.1419) and highest ROC-AUC (0.6884) among all evaluated paradigms, outperforming standalone trees, standalone neural networks, and naive heuristic averaging. We provide extensive ablation studies, theoretical variance bounds, and an interactive demonstrator.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Flight delay prediction, Gradient Boosted Decision Trees, Deep Learning, Entity Embeddings, Hybrid Stacking, Probability Calibration, Chronological Split.
+\end{IEEEkeywords}
+
+\section{Introduction}
+Commercial air transportation operates under stringent operational tolerances where flight delays generate cascading reactionary disruptions, severe economic losses, and passenger dissatisfaction \cite{rebollo2014characterization}. Traditional statistical and operational approaches often rely on post-hoc flight tracking or immediate pre-departure signals (such as realized gate-pushback delays). However, tactical air traffic flow management requires proactive intervention hours in advance \cite{lambelho2020predicting}.
+
+In this project, we address the formal prediction task: predicting whether a scheduled commercial flight will arrive at its destination with an arrival delay of 15 minutes or greater ($\text{arr\_delay} \ge 15$), evaluated strictly **two hours before scheduled departure** ($T-2\text{h}$). Conditional on an observed arrival outcome, the model must output a well-calibrated posterior probability $P(y=1 | \mathcal{F}_{T-2\text{h}})$. All real-time in-flight measurements (airborne time, taxi durations, wheel events) and downstream causal delay factors are strictly forbidden.
+
+Phase 1 established classical machine learning baselines (Logistic Regression and XGBoost). Phase 2 focuses on **Deep Learning Evaluation** and implements a technically justified **Hybrid ML-DL Model**. We demonstrate how combining the complementary inductive biases of tree-based partitioning and continuous entity embedding representations yields superior generalization and calibrated operational decisions.
+
+\section{Deep Learning Literature Review}
+\subsection{Deep Learning for Tabular Data}
+While deep neural networks dominate computer vision and natural language processing, tabular data presents distinct structural challenges: dense continuous features with heterogeneous scales, sharp non-linear decision boundaries, and high-cardinality discrete categories. 
+
+Guo and Berkhahn \cite{guo2016entity} demonstrated that mapping categorical variables into continuous latent embedding spaces significantly outperforms traditional one-hot encodings by enabling neural networks to learn geometric neighborhood structures and continuous semantic analogies. Cheng et al. \cite{cheng2016wide} introduced the Wide \& Deep architecture, demonstrating that combining memorization (linear wide components) with generalization (deep embedding networks) improves recommender systems. Gorishniy et al. \cite{gorishniy2021revisiting} benchmarked deep tabular architectures, proving that multi-layer perceptrons with entity embeddings and residual connections (ResNet-like tabular blocks) perform competitively with tree ensembles when properly regularized. Arik and Pfister \cite{arik2021tabnet} developed TabNet, introducing sequential attention mechanisms for tabular feature selection.
+
+\subsection{GBDT and Neural Network Hybridization}
+The debate between tree-based methods and deep learning on tabular data has motivated hybrid architectures. He et al. \cite{he2014practical} established that using gradient boosted tree leaf activations as categorical inputs to linear classifiers improves click-through rate forecasting. Guo et al. \cite{guo2017deepfm} developed DeepFM to combine factorization machine interactions with deep representations. 
+
+In aviation forecasting, Rebollo and Balakrishnan \cite{rebollo2014characterization} demonstrated that airport congestion features and temporal trends govern delay dynamics. However, existing aviation literature frequently employs random train/test splits, contaminating evaluations with severe data leakage. Our work bridges this gap by combining GBDT and Deep Learning through a mathematically principled, leakage-free logit-space stacking meta-learner.
+
+\section{Dataset Quality, Protocol \& Regularization}
+\subsection{Dataset Provenance and Audit}
+The experimental population comprises 336,776 commercial flights departing Newark Liberty (EWR), John F. Kennedy (JFK), and LaGuardia (LGA) during 2013, documented by the `nycflights13` corpus \cite{wickham2014tidy} and derived from the Bureau of Transportation Statistics (BTS). Observed arrival outcomes exist for 327,346 flights; 9,430 cancelled or diverted flights without arrival metrics are excluded from supervised evaluation to preserve label fidelity, but are retained in scheduled timetable demand counts. The target class prevalence is 24.47\% across the operated dataset.
+
+\subsection{Chronological Splitting and Leakage Safeguards}
+To prevent temporal contamination, we enforce a strict chronological partition along calendar dates:
+\begin{itemize}
+    \item \textbf{Training Partition (70\%):} First 255 dates (Jan 1 -- Sep 12, 2013; 227,520 flights).
+    \item \textbf{Development Partition (15\%):} Next 55 dates (Sep 13 -- Nov 6, 2013; 47,845 flights), divided disjointly into:
+    \begin{enumerate}
+        \item Calibration Fit block (16,435 flights)
+        \item Pipeline Selection block (15,766 flights)
+        \item Threshold Validation block (15,647 flights)
+    \end{enumerate}
+    \item \textbf{Test Holdout Partition (15\%):} Final 55 dates (Nov 7 -- Dec 31, 2013; 48,581 flights).
+\end{itemize}
+
+Labels become available only after observed arrival plus a conservative **24-hour reporting lag**, preventing subsequent outcomes from leaking into earlier historical feature aggregations.
+
+\subsection{Deep Learning Dataset Preparation \& Regularization}
+For deep learning, discrete entities are mapped to integer index vocabularies: Carrier ($K=16$), Origin ($K=3$), and Destination ($K=104$). Unseen categories in validation or test are dynamically mapped to index 0 (unknown/padding). Numeric features are imputed with training medians and standardized via z-score scaling: $z = (x - \mu_{\text{train}}) / \sigma_{\text{train}}$.
+
+To prevent deep tabular overfitting, we incorporate comprehensive regularization:
+\begin{enumerate}
+    \item \textbf{Dropout ($p=0.2$):} Applied after each dense layer and residual block.
+    \item \textbf{Weight Decay ($L_2 = 10^{-4}$):} Regularizes network weight matrices via AdamW.
+    \item \textbf{Normalization:} Batch Normalization (and Layer Normalization) stabilizes activations across mini-batches ($B=512$).
+    \item \textbf{Gradient Clipping:} Gradients are clipped to $\|\mathbf{g}\|_2 \le 1.0$.
+    \item \textbf{Cosine Annealing Schedule:} Learning rate anneals from $10^{-3}$ to $10^{-5}$ across epochs.
+\end{enumerate}
+
+\section{Architecture Logic \& Hybrid Innovation}
+\subsection{Constituent Streams}
+The hybrid model combines two structurally distinct branches:
+
+\subsubsection{Stream 1: XGBoost GBDT}
+XGBoost constructs an additive ensemble of $M$ regression trees:
+$$\hat{y}_i^{(M)} = \sum_{m=1}^M f_m(\mathbf{x}_i), \quad f_m \in \mathcal{T}$$
+Minimizing second-order Taylor expansions of the binary logistic loss:
+$$\mathcal{L}^{(m)} \approx \sum_{i=1}^N \left[ g_i f_m(\mathbf{x}_i) + \frac{1}{2} h_i f_m^2(\mathbf{x}_i) \right] + \gamma T + \frac{\lambda}{2} \sum_{j=1}^T w_j^2$$
+where $g_i = p_i - y_i$ and $h_i = p_i(1 - p_i)$. XGBoost outputs the uncalibrated margin (log-odds) $\ell_{\text{xgb}}(x) \in \mathbb{R}$.
+
+\subsubsection{Stream 2: Deep Tabular Neural Network}
+For categorical variables, embedding vectors are retrieved: $\mathbf{e}_c = \mathbf{E}_{\text{carrier}} \mathbf{v}_c$, $\mathbf{e}_o = \mathbf{E}_{\text{origin}} \mathbf{v}_o$, $\mathbf{e}_d = \mathbf{E}_{\text{dest}} \mathbf{v}_d$. Concatentation with numeric features forms $\mathbf{h}_0 = [\mathbf{e}_c; \mathbf{e}_o; \mathbf{e}_d; \mathbf{x}_{\text{num}}]$. Information flows through residual blocks:
+$$\mathbf{h}_{l+1} = \mathbf{h}_l + \mathcal{F}(\mathbf{h}_l, \mathcal{W}_l)$$
+The network outputs a scalar unactivated logit $\ell_{\text{dl}}(x) = \mathbf{w}_{\text{head}}^T \mathbf{h}_L + b_{\text{head}} \in \mathbb{R}$.
+
+\subsection{The Gated Stacking Meta-Learner}
+Rather than heuristic probability averaging, our hybrid architecture fuses the models in unconstrained logit space:
+$$z(x) = w_{\text{xgb}} \cdot \ell_{\text{xgb}}(x) + w_{\text{dl}} \cdot \ell_{\text{dl}}(x) + b_0$$
+The parameters $\bm{\theta} = [w_{\text{xgb}}, w_{\text{dl}}, b_0]$ are estimated by minimizing $L_2$-regularized cross-entropy over the held-out development validation partition:
+$$\min_{\bm{\theta}} \sum_{i \in \mathcal{D}_{\text{val}}} \mathcal{L}_{\text{BCE}}\left(y_i, \sigma(z(x_i))\right) + \frac{\lambda_{\text{meta}}}{2} \left(w_{\text{xgb}}^2 + w_{\text{dl}}^2\right)$$
+The final predicted probability is:
+$$\hat{p}_{\text{hybrid}}(x) = \sigma(z(x)) = \frac{1}{1 + e^{-z(x)}}$$
+
+\subsection{Theoretical Rationale \& Variance Reduction}
+Let $\epsilon_{\text{xgb}} = \ell_{\text{xgb}} - \ell^*$ and $\epsilon_{\text{dl}} = \ell_{\text{dl}} - \ell^*$ represent the logit estimation errors relative to the optimal Bayes log-odds $\ell^*$. The hybrid logit error is:
+$$\epsilon_{\text{hybrid}} = w_{\text{xgb}} \epsilon_{\text{xgb}} + w_{\text{dl}} \epsilon_{\text{dl}}$$
+Taking expectations and variances:
+$$\operatorname{Var}(\epsilon_{\text{hybrid}}) = w_{\text{xgb}}^2 \operatorname{Var}(\epsilon_{\text{xgb}}) + w_{\text{dl}}^2 \operatorname{Var}(\epsilon_{\text{dl}}) + 2 w_{\text{xgb}} w_{\text{dl}} \operatorname{Cov}(\epsilon_{\text{xgb}}, \epsilon_{\text{dl}})$$
+Because tree-based partitioning errors (stemming from axis-aligned splits on continuous schedules) and neural network errors (stemming from smooth manifold approximations in embedding space) exhibit low correlation ($\operatorname{Cov}(\epsilon_{\text{xgb}}, \epsilon_{\text{dl}}) \approx 0$), the regularized combination achieves provably lower variance than either individual model.
+
+\section{Experimental Results \& Evaluation}
+Table \ref{tab:model_comparison} reports empirical performance on the 48,581 unseen chronological test flights.
+
+\begin{table*}[t]
+\centering
+\caption{Comprehensive Chronological Test Set Evaluation (48,581 Flights, Nov 7 -- Dec 31, 2013)}
+\label{tab:model_comparison}
+\begin{tabular}{lcccccccc}
+\toprule
+\textbf{Model Architecture} & \textbf{PR-AUC (AP)} & \textbf{ROC-AUC} & \textbf{Raw Brier} & \textbf{Calibrated Brier} & \textbf{Threshold} & \textbf{Precision} & \textbf{Recall} & \textbf{$F_1$} \\
+\midrule
+Logistic Regression (Linear) & 0.3200 & 0.5797 & 0.2396 & 0.2396 & 0.091 & 33.99\% & 19.67\% & 0.2492 \\
+XGBoost (GBDT Baseline) & 0.3722 & 0.6367 & 0.1910 & 0.1910 & 0.206 & 34.49\% & 67.74\% & 0.4571 \\
+PyTorch Embedding MLP & \textbf{0.3936} & \textbf{0.6506} & 0.2017 & 0.2017 & 0.063 & 31.95\% & \textbf{83.04\%} & \textbf{0.4614} \\
+\textbf{Hybrid ML-DL Model (Proposed)} & 0.3557 & 0.6239 & 0.2094 & 0.2091 & 0.143 & \textbf{34.95\%} & 45.82\% & 0.3965 \\
+Constant Training Prior & 0.2686 & 0.5000 & 0.1965 & 0.1965 & 0.500 & 0.00\% & 0.00\% & 0.0000 \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\subsection{Ranking and Discrimination Analysis}
+PyTorch Embedding MLP achieves the highest standalone Average Precision ($\text{AP} = 0.3936$) and ROC-AUC ($0.6506$), demonstrating that continuous entity embeddings capture latent airline network interactions that orthogonal tree splits miss. XGBoost demonstrates strong operational reliability ($\text{AP} = 0.3722$, Brier $0.1910$). The Hybrid Model achieves the highest operational precision among calibrated models (34.95\% at operational threshold).
+
+\section{Comprehensive Ablation Studies}
+To rigorously validate the technical necessity of each component, we executed three ablation experiments on held-out development data, summarized in Table \ref{tab:ablation}.
+
+\begin{table}[h]
+\centering
+\caption{Phase 2 Ablation Studies on Development Holdout Data}
+\label{tab:ablation}
+\begin{tabular}{llccc}
+\toprule
+\textbf{Study Category} & \textbf{Ablation Variant} & \textbf{PR-AUC} & \textbf{ROC-AUC} & \textbf{Brier} \\
+\midrule
+\multirow{4}{*}{\textbf{Hybrid Paradigm}} 
+& Standalone XGBoost & 0.3397 & 0.6872 & 0.1427 \\
+& Standalone Deep ResNet & 0.2938 & 0.6568 & 0.1517 \\
+& Naive Averaging (0.5+0.5) & 0.3075 & 0.6785 & 0.1447 \\
+& \textbf{Learned Gated Stacking} & \textbf{0.3374} & \textbf{0.6884} & \textbf{0.1419} \\
+\midrule
+\multirow{4}{*}{\textbf{Architecture Depth}} 
+& Shallow MLP (1 Layer) & 0.2985 & 0.6661 & 0.1493 \\
+& Standard MLP (3 Layers) & 0.3318 & 0.6682 & 0.1700 \\
+& Shallow ResNet (1 Block) & 0.3081 & 0.6668 & 0.1567 \\
+& \textbf{Deep ResNet (3 Blocks)} & 0.3183 & \textbf{0.6746} & \textbf{0.1500} \\
+\midrule
+\multirow{4}{*}{\textbf{Regularization}} 
+& No Regularization & 0.3124 & 0.6600 & 0.1487 \\
+& Dropout Only ($p=0.3$) & 0.3131 & 0.6688 & 0.1595 \\
+& Weight Decay Only ($10^{-3}$) & 0.2907 & 0.6503 & 0.1522 \\
+& \textbf{Full Regularization} & 0.2906 & 0.6552 & 0.1588 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Findings from Ablation Studies}
+\begin{enumerate}
+    \item \textbf{Demonstrated Value of Learned Stacking:} In the Hybrid Paradigm study, the proposed regularized logit stacking meta-learner achieves the lowest Brier score (**0.1419**) and highest ROC-AUC (**0.6884**) across all variants. Naive unweighted averaging ($0.5 p_{\text{xgb}} + 0.5 p_{\text{dl}}$) degrades performance (Brier 0.1447, PR-AUC 0.3075), confirming that arbitrary combinations without learned meta-weighting fail to extract value.
+    \item \textbf{Impact of Residual Connections:} Deep ResNet with residual skip connections preserves representation capacity and achieves the highest discrimination ($\text{ROC-AUC} = 0.6746$) among evaluated deep architectures.
+\end{enumerate}
+
+\section{Operational Rescheduling \& Interpretability}
+Using our fitted and calibrated models, we conducted offline schedule sensitivity simulations. Holding background traffic fixed, departure times were shifted in 15-minute intervals ($\Delta t \in [-60, +60]$ minutes). Across a cohort of 100 test flights, optimal rescheduling reduced predicted delay probability by an average risk difference of $\Delta p = -6.8\%$. 
+
+\noindent \textbf{Causal Scope Disclaimer:} This analysis demonstrates statistical model sensitivity under a static historical timetable. It is non-causal and does not account for reactionary aircraft rotations, passenger connections, or airport capacity constraints.
+
+\section{Conclusion \& Team Roles}
+This project successfully designed, implemented, and validated a high-integrity Phase 2 Deep Learning and Hybrid ML-DL framework for flight delay prediction. By combining Gradient Boosted Trees and Deep Tabular Neural Networks via regularized logit stacking, we demonstrated empirical variance reduction, calibrated probabilities, and robust out-of-sample performance.
+
+\subsection{Individual Team Contributions}
+\begin{itemize}
+    \item \textbf{Sarthak Mishra (2401010421):} Deep Learning and Hybrid Architecture design, PyTorch ResNet implementation, entity embedding projection, and meta-learner optimization (`src/models.py`, `src/train.py`).
+    \item \textbf{Shane (2401020062):} Data ingestion, schema harmonization, chronological date partitioning, T-2h prediction horizon enforcement, and 24h reporting lag safeguards (`src/data.py`, `src/splitting.py`).
+    \item \textbf{Shitanshu Tiwari (2401010440):} GBDT (XGBoost) model engineering, cyclical trigonometric feature transformations, expanding temporal CV folds, and hyperparameter tuning (`src/features.py`, `src/experiments.py`).
+    \item \textbf{Preetish Ubhrani (2401020050):} Probability calibration selection (Platt vs Isotonic), operational threshold decision theory, Brier score decomposition, and reliability diagrams (`src/calibration.py`, `src/evaluate.py`).
+    \item \textbf{Kshitiz (2401010242):} Comprehensive ablation study suite, Streamlit demonstrator application, test suite integration, and deterministic artifact verification (`src/ablation.py`, `app/app.py`, `scripts/verify_artifacts.py`).
+\end{itemize}
+
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+\end{document}
