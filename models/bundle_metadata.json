@@ -8,7 +8,8 @@
   "supported_models": [
     "logistic_regression",
     "xgboost",
-    "pytorch_mlp"
+    "pytorch_mlp",
+    "hybrid_model"
   ],
   "feature_names": [
     "carrier",
@@ -107,5 +108,8 @@
   "historical_reporting_lag_hours": 24,
   "supplementary_models": [
     "pytorch_mlp"
+  ],
+  "hybrid_models": [
+    "hybrid_model"
   ]
 }

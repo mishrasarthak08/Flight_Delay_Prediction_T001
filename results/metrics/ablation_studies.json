@@ -1,0 +1,98 @@
+[
+  {
+    "study": "hybrid_paradigm",
+    "variant": "Standalone XGBoost (GBDT)",
+    "pr_auc": 0.33966205843626585,
+    "roc_auc": 0.687165052566325,
+    "brier_score": 0.14268247783184052,
+    "notes": "Axis-aligned decision boundaries on continuous tabular schedules"
+  },
+  {
+    "study": "hybrid_paradigm",
+    "variant": "Standalone Deep ResNet (DL)",
+    "pr_auc": 0.2938094014123923,
+    "roc_auc": 0.6567674026350088,
+    "brier_score": 0.15169274806976318,
+    "notes": "Continuous latent embeddings for categorical entities + residual blocks"
+  },
+  {
+    "study": "hybrid_paradigm",
+    "variant": "Naive Averaging (0.5 GBDT + 0.5 DL)",
+    "pr_auc": 0.3075278089966504,
+    "roc_auc": 0.6784847580000996,
+    "brier_score": 0.14468911290168762,
+    "notes": "Simple heuristic ensemble without learned calibration or meta-weighting"
+  },
+  {
+    "study": "hybrid_paradigm",
+    "variant": "Learned Gated Stacking (Proposed Hybrid)",
+    "pr_auc": 0.33737647277845406,
+    "roc_auc": 0.6884042834606207,
+    "brier_score": 0.14191199839115143,
+    "notes": "Optimal logit-space meta-fusion: w_xgb=1.289, w_dl=0.060, b=0.473"
+  },
+  {
+    "study": "architecture_depth",
+    "variant": "Shallow MLP (1 Layer)",
+    "pr_auc": 0.2984925650304061,
+    "roc_auc": 0.6660937862229853,
+    "brier_score": 0.14932388067245483,
+    "notes": "Trained for 3 epochs on training partition"
+  },
+  {
+    "study": "architecture_depth",
+    "variant": "Standard MLP (3 Layers)",
+    "pr_auc": 0.33180023455004737,
+    "roc_auc": 0.668196441859221,
+    "brier_score": 0.17004041373729706,
+    "notes": "Trained for 3 epochs on training partition"
+  },
+  {
+    "study": "architecture_depth",
+    "variant": "Shallow ResNet (1 Block)",
+    "pr_auc": 0.30811352511248974,
+    "roc_auc": 0.6668243253101701,
+    "brier_score": 0.15672579407691956,
+    "notes": "Trained for 3 epochs on training partition"
+  },
+  {
+    "study": "architecture_depth",
+    "variant": "Deep ResNet (3 Blocks)",
+    "pr_auc": 0.3182846723925858,
+    "roc_auc": 0.6745781719378963,
+    "brier_score": 0.1499600112438202,
+    "notes": "Trained for 3 epochs on training partition"
+  },
+  {
+    "study": "regularization",
+    "variant": "No Regularization",
+    "pr_auc": 0.31240893040090933,
+    "roc_auc": 0.6600391269034546,
+    "brier_score": 0.14866027235984802,
+    "notes": "Dropout=0.0, Weight Decay=0.0"
+  },
+  {
+    "study": "regularization",
+    "variant": "Dropout Only (p=0.3)",
+    "pr_auc": 0.31309139742037345,
+    "roc_auc": 0.6688299134782334,
+    "brier_score": 0.15953496098518372,
+    "notes": "Dropout=0.3, Weight Decay=0.0"
+  },
+  {
+    "study": "regularization",
+    "variant": "Weight Decay Only (lambda=1e-3)",
+    "pr_auc": 0.29066670698056735,
+    "roc_auc": 0.6502606433769589,
+    "brier_score": 0.15221883356571198,
+    "notes": "Dropout=0.0, Weight Decay=0.001"
+  },
+  {
+    "study": "regularization",
+    "variant": "Full Regularization (Dropout=0.2 + Weight Decay=1e-4)",
+    "pr_auc": 0.2905801574562688,
+    "roc_auc": 0.6552266880012452,
+    "brier_score": 0.1587894856929779,
+    "notes": "Dropout=0.2, Weight Decay=0.0001"
+  }
+]

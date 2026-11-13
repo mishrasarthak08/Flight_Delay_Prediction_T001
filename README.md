@@ -73,9 +73,10 @@ The original test outputs were inspected during code review. These results are a
 | Logistic Regression | 0.3200 | 0.5797 | 0.2396 | 68.17% | 33.99% | 19.67% | none |
 | XGBoost | 0.3722 | 0.6367 | 0.1910 | 56.79% | 34.49% | 67.74% | none |
 | PyTorch Embedding MLP | 0.3936 | 0.6506 | 0.2017 | 47.94% | 31.95% | 83.04% | none |
+| Hybrid ML-DL Model | 0.3557 | 0.6239 | 0.2091 | 62.54% | 34.95% | 45.82% | isotonic |
 | Constant training prior | 0.2686 | 0.5000 | 0.1965 | 73.14% | — | 0.00% | constant |
 
-The project-selected 70% development precision target was infeasible with minimum alert support for: Logistic Regression, XGBoost, PyTorch Embedding MLP. Their operating points use the declared development-F1 fallback.
+The project-selected 70% development precision target was infeasible with minimum alert support for: Logistic Regression, XGBoost, PyTorch Embedding MLP, Hybrid ML-DL Model. Their operating points use the declared development-F1 fallback.
 <!-- END GENERATED RESULTS -->
 
 AP means **Average Precision on raw scores**, not trapezoidal PR area. Brier loss uses the selected probability output, including identity calibration when that wins development selection. Lower Brier loss is better. Operational precision and recall use thresholds selected on the same probability scale as inference. The documented fallback maximizes development F1 with minimum alert support. The 70% target is a project configuration choice, not a faculty-specified requirement.

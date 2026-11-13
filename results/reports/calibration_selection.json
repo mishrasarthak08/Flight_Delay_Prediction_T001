@@ -52,5 +52,23 @@
         "selection_brier_score": 0.1527486890554428
       }
     ]
+  },
+  "hybrid_model": {
+    "selected_method": "isotonic",
+    "selection_dataset": "calibration_selection",
+    "candidates": [
+      {
+        "method": "none",
+        "selection_brier_score": 0.1500551551580429
+      },
+      {
+        "method": "sigmoid",
+        "selection_brier_score": 0.15006296336650848
+      },
+      {
+        "method": "isotonic",
+        "selection_brier_score": 0.14939436316490173
+      }
+    ]
   }
 }

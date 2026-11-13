@@ -1,0 +1,16 @@
+{
+  "target_precision": 0.7,
+  "selected_threshold": 0.1428571343421936,
+  "validation_precision_at_threshold": 0.2728337236533958,
+  "validation_recall_at_threshold": 0.42846634792203014,
+  "validation_f1_at_threshold": 0.33338102685328364,
+  "target_precision_met": false,
+  "selection_dataset": "threshold_validation",
+  "probability_scale": "selected_calibrator_output",
+  "selection_rule": "max_recall_at_target_precision_else_max_f1_with_minimum_alert_support",
+  "minimum_alerts": 100,
+  "validation_alert_count": 4270,
+  "default_threshold": 0.5,
+  "calibration_method": "isotonic",
+  "policy_available_at": "2013-11-07T08:00:00+00:00"
+}

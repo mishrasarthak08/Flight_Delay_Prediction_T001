@@ -189,6 +189,14 @@
       "recall_at_op_threshold": 0.8303824634015482
     },
     {
+      "model": "Hybrid ML-DL Model",
+      "pr_auc": 0.35570379376808026,
+      "roc_auc": 0.6238536618170822,
+      "brier_score_calibrated": 0.20912710940441934,
+      "precision_at_op_threshold": 0.3494680229159359,
+      "recall_at_op_threshold": 0.4581896221353568
+    },
+    {
       "model": "Constant training prior",
       "pr_auc": 0.2685617834132686,
       "roc_auc": 0.5,
@@ -227,7 +235,15 @@
       "mlp_weight_decay": 0.0001,
       "mlp_batch_size": 512,
       "mlp_epochs": 20,
-      "mlp_early_stopping_patience": 5
+      "mlp_early_stopping_patience": 5,
+      "resnet_hidden_dim": 128,
+      "resnet_num_blocks": 3,
+      "resnet_dropout": 0.2,
+      "resnet_use_layernorm": false,
+      "hybrid_fusion_strategy": "gated_stacking",
+      "hybrid_meta_l2": 0.01,
+      "hybrid_xgb_weight_init": 0.5,
+      "hybrid_dl_weight_init": 0.5
     },
     "xgboost": {
       "lr_c": 0.1,
@@ -258,7 +274,15 @@
       "mlp_weight_decay": 0.0001,
       "mlp_batch_size": 512,
       "mlp_epochs": 20,
-      "mlp_early_stopping_patience": 5
+      "mlp_early_stopping_patience": 5,
+      "resnet_hidden_dim": 128,
+      "resnet_num_blocks": 3,
+      "resnet_dropout": 0.2,
+      "resnet_use_layernorm": false,
+      "hybrid_fusion_strategy": "gated_stacking",
+      "hybrid_meta_l2": 0.01,
+      "hybrid_xgb_weight_init": 0.5,
+      "hybrid_dl_weight_init": 0.5
     }
   },
   "selected_feature_sets": {
@@ -380,11 +404,11 @@
     "matplotlib": "3.11.2",
     "seaborn": "0.13.2"
   },
-  "python": "3.12.14 (main, Aug 25 2026, 13:50:33) [Clang 22.1.3 ]",
-  "source_sha256": "16c457c58013b6610dc2a629f7d5317a95d5f6397886e84bbad089849095f8d1",
-  "base_git_revision": "66010c564ddd5ce01c9441ffc42ca8e01830c6d5",
+  "python": "3.12.5 (v3.12.5:ff3bc82f7c9, Aug  7 2024, 05:32:06) [Clang 13.0.0 (clang-1300.0.29.30)]",
+  "source_sha256": "af2acef898573d31d35ffb363624cf1b6edbb4c1af30d533756393ca4cdc9100",
+  "base_git_revision": "51e6f5b9f2014f6ad46fbf79d89b2583892a61f8",
   "working_tree_changes": true,
-  "elapsed_seconds": 290.98,
+  "elapsed_seconds": 242.25,
   "test_reuse_disclosure": "The original test results were inspected during review. This is a corrected retrospective reevaluation, not a newly untouched external test.",
-  "phase_scope": "Logistic Regression and XGBoost are the Phase 1 ML models. MLP is supplementary."
+  "phase_scope": "Phase 2 Deep Learning and Hybrid ML-DL Evaluation. Models: Logistic Regression, XGBoost, PyTorch Embedding MLP, and Hybrid ML-DL Model (Gated Stacking)."
 }

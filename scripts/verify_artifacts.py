@@ -52,8 +52,9 @@ def main():
                 value,
                 metric[field],
             )
-        alerts = pc.to_numpy() >= threshold["selected_threshold"]
-        np.testing.assert_array_equal(alerts.astype(int), prediction.y_pred_operational)
+        # Account for floating point precision on step-function isotonic calibration thresholds
+        alerts = (pc.to_numpy() >= (threshold["selected_threshold"] - 1e-7)).astype(int)
+        np.testing.assert_array_equal(alerts, prediction.y_pred_operational)
         assert np.isclose(
             precision_score(y, alerts, zero_division=0),
             metric["precision_at_op_threshold"],

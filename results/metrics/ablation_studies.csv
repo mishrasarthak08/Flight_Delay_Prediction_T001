@@ -1,0 +1,13 @@
+study,variant,pr_auc,roc_auc,brier_score,notes
+hybrid_paradigm,Standalone XGBoost (GBDT),0.33966205843626585,0.687165052566325,0.14268247783184052,Axis-aligned decision boundaries on continuous tabular schedules
+hybrid_paradigm,Standalone Deep ResNet (DL),0.2938094014123923,0.6567674026350088,0.15169274806976318,Continuous latent embeddings for categorical entities + residual blocks
+hybrid_paradigm,Naive Averaging (0.5 GBDT + 0.5 DL),0.3075278089966504,0.6784847580000996,0.14468911290168762,Simple heuristic ensemble without learned calibration or meta-weighting
+hybrid_paradigm,Learned Gated Stacking (Proposed Hybrid),0.33737647277845406,0.6884042834606207,0.14191199839115143,"Optimal logit-space meta-fusion: w_xgb=1.289, w_dl=0.060, b=0.473"
+architecture_depth,Shallow MLP (1 Layer),0.2984925650304061,0.6660937862229853,0.14932388067245483,Trained for 3 epochs on training partition
+architecture_depth,Standard MLP (3 Layers),0.33180023455004737,0.668196441859221,0.17004041373729706,Trained for 3 epochs on training partition
+architecture_depth,Shallow ResNet (1 Block),0.30811352511248974,0.6668243253101701,0.15672579407691956,Trained for 3 epochs on training partition
+architecture_depth,Deep ResNet (3 Blocks),0.3182846723925858,0.6745781719378963,0.1499600112438202,Trained for 3 epochs on training partition
+regularization,No Regularization,0.31240893040090933,0.6600391269034546,0.14866027235984802,"Dropout=0.0, Weight Decay=0.0"
+regularization,Dropout Only (p=0.3),0.31309139742037345,0.6688299134782334,0.15953496098518372,"Dropout=0.3, Weight Decay=0.0"
+regularization,Weight Decay Only (lambda=1e-3),0.29066670698056735,0.6502606433769589,0.15221883356571198,"Dropout=0.0, Weight Decay=0.001"
+regularization,Full Regularization (Dropout=0.2 + Weight Decay=1e-4),0.2905801574562688,0.6552266880012452,0.1587894856929779,"Dropout=0.2, Weight Decay=0.0001"

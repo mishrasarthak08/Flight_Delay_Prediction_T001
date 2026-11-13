@@ -414,6 +414,136 @@
     "supplementary": true
   },
   {
+    "model_name": "Hybrid ML-DL Model",
+    "split": "test",
+    "num_samples": 48581,
+    "positive_count": 13047,
+    "positive_prevalence": 0.2685617834132686,
+    "operational_alert_count": 17106,
+    "precision_defined": true,
+    "average_precision_calibrated": 0.34068760652565117,
+    "roc_auc_calibrated": 0.6187489018028169,
+    "pr_auc": 0.35570379376808026,
+    "roc_auc": 0.6238536618170822,
+    "brier_score_raw": 0.20936164676729072,
+    "brier_score_calibrated": 0.20912710940441934,
+    "operational_threshold": 0.1428571343421936,
+    "precision_at_op_threshold": 0.3494680229159359,
+    "recall_at_op_threshold": 0.4581896221353568,
+    "f1_at_op_threshold": 0.3965111265877359,
+    "confusion_matrix_op": {
+      "tn": 24406,
+      "fp": 11128,
+      "fn": 7069,
+      "tp": 5978
+    },
+    "default_threshold": 0.5,
+    "precision_at_default": 0.5233160621761658,
+    "recall_at_default": 0.015482486395339924,
+    "f1_at_default": 0.03007518796992481,
+    "confusion_matrix_default": {
+      "tn": 35350,
+      "fp": 184,
+      "fn": 12845,
+      "tp": 202
+    },
+    "calibration_curve": {
+      "prob_true": [
+        0.12809734513274337,
+        0.1736896197327852,
+        0.2011686143572621,
+        0.2919488862509601,
+        0.33365415463586784,
+        0.4244011976047904
+      ],
+      "prob_pred": [
+        0.08788531031500779,
+        0.09643024572947533,
+        0.1028768172385,
+        0.14012659300204788,
+        0.15497909112163258,
+        0.27843488627364354
+      ]
+    },
+    "calibration_curve_raw": {
+      "prob_true": [
+        0.11646090534979424,
+        0.1432983323038913,
+        0.20111156854672704,
+        0.24310415808974886,
+        0.2758336764100453,
+        0.3148796048569665,
+        0.34198064648960264,
+        0.3242074927953891,
+        0.30794565664882667,
+        0.41683820502264307
+      ],
+      "prob_pred": [
+        0.07902639155647882,
+        0.09510132946980596,
+        0.10896830410440059,
+        0.1203771092322762,
+        0.1312267772022124,
+        0.1410151630713631,
+        0.1506805975440355,
+        0.15881030025944487,
+        0.16931215525839052,
+        0.19993466375332009
+      ]
+    },
+    "threshold_selection_metadata": {
+      "target_precision": 0.7,
+      "selected_threshold": 0.1428571343421936,
+      "validation_precision_at_threshold": 0.2728337236533958,
+      "validation_recall_at_threshold": 0.42846634792203014,
+      "validation_f1_at_threshold": 0.33338102685328364,
+      "target_precision_met": false,
+      "selection_dataset": "threshold_validation",
+      "probability_scale": "selected_calibrator_output",
+      "selection_rule": "max_recall_at_target_precision_else_max_f1_with_minimum_alert_support",
+      "minimum_alerts": 100,
+      "validation_alert_count": 4270,
+      "default_threshold": 0.5,
+      "calibration_method": "isotonic",
+      "policy_available_at": "2013-11-07T08:00:00+00:00"
+    },
+    "calibration_selection": {
+      "selected_method": "isotonic",
+      "selection_dataset": "calibration_selection",
+      "candidates": [
+        {
+          "method": "none",
+          "selection_brier_score": 0.1500551551580429
+        },
+        {
+          "method": "sigmoid",
+          "selection_brier_score": 0.15006296336650848
+        },
+        {
+          "method": "isotonic",
+          "selection_brier_score": 0.14939436316490173
+        }
+      ]
+    },
+    "training_average_precision": 0.4146062082302385,
+    "confidence_intervals_95_day_block": {
+      "average_precision": {
+        "lower": 0.3030862796880638,
+        "upper": 0.4198640395132892
+      },
+      "roc_auc": {
+        "lower": 0.6001073533279566,
+        "upper": 0.6470481092733927
+      },
+      "brier_score": {
+        "lower": 0.1796189785003662,
+        "upper": 0.2400400057435036
+      }
+    },
+    "interval_score_scale": "raw_ranking_metrics_and_selected_probability_brier",
+    "supplementary": "hybrid"
+  },
+  {
     "model_name": "Constant training prior",
     "split": "test",
     "num_samples": 48581,

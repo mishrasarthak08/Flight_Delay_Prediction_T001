@@ -32,6 +32,9 @@ from src.validation import (
 )
 from src.models import (
     FlightEmbeddingMLP,
+    FlightDeepResNet,
+    HybridFlightDelayModel,
+    XGBoostModel,
 )
 from src.calibration import ModelCalibrator
 
@@ -144,7 +147,6 @@ class FlightDelayPredictor:
 
         elif self.model_name in ("pytorch_deep_resnet", "resnet"):
             from src.preprocessing import PyTorchPreprocessor
-            from src.models import FlightDeepResNet
 
             self.preprocessor = PyTorchPreprocessor.load(
                 self.models_dir / "pytorch_preprocessor.pkl"
@@ -157,7 +159,6 @@ class FlightDelayPredictor:
 
         elif self.model_name in ("hybrid_model", "hybrid"):
             from src.preprocessing import FlightTabularPreprocessor, PyTorchPreprocessor
-            from src.models import FlightDeepResNet, FlightEmbeddingMLP, HybridFlightDelayModel
 
             with open(self.models_dir / "xgboost.pkl", "rb") as f:
                 self.xgb_model = pickle.load(f)

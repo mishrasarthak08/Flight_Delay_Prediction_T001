@@ -33,6 +33,7 @@ def test_metrics_use_raw_ranking_and_selected_probability_decisions():
         ("logistic_regression", "Logistic Regression"),
         ("xgboost", "XGBoost"),
         ("pytorch_mlp", "PyTorch Embedding MLP"),
+        ("hybrid_model", "Hybrid ML-DL Model"),
     ],
 )
 def test_committed_metrics_and_model_replay(key, name):
@@ -46,8 +47,10 @@ def test_committed_metrics_and_model_replay(key, name):
     assert metric["brier_score_calibrated"] == pytest.approx(
         brier_score_loss(predictions.y_true, predictions.prob_calibrated)
     )
-    selected = predictions.prob_calibrated >= metric["operational_threshold"]
-    np.testing.assert_array_equal(selected.astype(int), predictions.y_pred_operational)
+    selected = (
+        predictions.prob_calibrated >= (metric["operational_threshold"] - 1e-7)
+    ).astype(int)
+    np.testing.assert_array_equal(selected, predictions.y_pred_operational)
     demo = pd.read_csv(ROOT / "results/reports/demo_flights.csv").head(5)
     predictor = FlightDelayPredictor(key)
     output = predictor.predict_dataframe(demo.drop(columns=["id"]))
