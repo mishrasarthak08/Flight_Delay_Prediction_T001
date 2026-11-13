@@ -1,8 +1,8 @@
 # Flight Delay Prediction and Rescheduling
 
-**Team T001 · Applied Machine Learning capstone · Phase 1**
+**Team T001 · Applied Machine Learning & Deep Learning Capstone · Phase 2**
 
-Phase 1 machine learning evaluation of 2013 NYC departures. The required comparison is **Logistic Regression versus XGBoost**. A categorical embedding MLP is included as a supplementary experiment.
+Phase 2 Deep Learning and Hybrid evaluation of 2013 NYC departures. Features **Deep Learning Evaluation (PyTorch Tabular ResNet & Embedding MLP)** and an innovative, technically justified **Hybrid ML-DL Model (XGBoost GBDT + Deep Learning Gated Stacking)**.
 
 The task predicts arrival delay of at least 15 minutes **two hours before scheduled departure**, conditional on an observed arrival outcome. The app is a historical demonstrator. It has not been validated for current flight operations.
 
@@ -129,10 +129,10 @@ One year and three origins limit transfer. Weather, rotations, capacity, crew an
 
 ## Final submission documents
 
-- [Project report (PDF)](docs/report/T001_Report.pdf): eight pages, including the literature review, dataset and feature decisions, models, actual results and references.
-- [Presentation (PDF)](docs/presentation/T001_Presentation.pdf): 13 slides covering the prediction task, implementation, evaluation, offline example and conclusion.
-
-The report and presentation folders contain only their final PDFs. Editable document sources, preparation notes and build intermediates are kept outside this repository.
+- [Project report (PDF)](docs/report/T001_Report.pdf): IEEE format paper covering the Deep Learning literature review, tabular ResNet and entity embedding architectures, GBDT-DL hybrid stacking innovation, empirical validation, ablation studies, and team member roles.
+- [Project report (LaTeX IEEE Source)](docs/report/T001_Phase2_Report.tex) and [References (BibTeX)](docs/report/references.bib): Complete IEEE conference paper LaTeX sources.
+- [Presentation (PDF)](docs/presentation/T001_Presentation.pdf): 13 widescreen slides covering Phase 2 Deep Learning evaluation, architecture logic, hybrid innovation, ablation findings, and live demonstrator app.
+- [Viva Voce Assessment Guide](docs/VIVA_VOCE_GUIDE.md): Comprehensive preparation document for individual viva voce defense, detailing each member's contributions, mathematical formulas, examiner defense strategies, and technical Q&A.
 
 ## Sources and license
 

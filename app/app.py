@@ -187,7 +187,7 @@ elif page == "Phase 2 Deep Learning & Hybrid Dashboard":
         cols[0].metric("XGBoost Stream Weight (w_xgb)", f"{weights['w_xgb']:.4f}")
         cols[1].metric("Deep Learning Stream Weight (w_dl)", f"{weights['w_dl']:.4f}")
         cols[2].metric("Meta Intercept (b)", f"{weights['intercept']:.4f}")
-    except Exception as e:
+    except Exception:
         st.info("Hybrid model loaded.")
 
     st.subheader("Ablation Studies (Empirical Justification)")

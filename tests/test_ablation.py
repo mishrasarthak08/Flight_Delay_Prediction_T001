@@ -2,14 +2,10 @@
 
 import numpy as np
 import pandas as pd
-import torch
-import pytest
 
 from src.ablation import (
     evaluate_predictions_compact,
     run_hybrid_paradigm_ablation,
-    run_architecture_ablation,
-    run_regularization_ablation,
     plot_ablation_summary,
 )
 

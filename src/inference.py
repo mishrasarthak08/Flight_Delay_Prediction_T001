@@ -34,7 +34,6 @@ from src.models import (
     FlightEmbeddingMLP,
     FlightDeepResNet,
     HybridFlightDelayModel,
-    XGBoostModel,
 )
 from src.calibration import ModelCalibrator
 

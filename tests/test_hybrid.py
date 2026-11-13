@@ -2,18 +2,12 @@
 
 import numpy as np
 import pandas as pd
-import torch
 import pytest
 from pathlib import Path
 
 from src.models import (
-    XGBoostModel,
-    FlightEmbeddingMLP,
-    FlightDeepResNet,
     HybridFlightDelayModel,
 )
-from src.config import ModelHyperparams, ALL_MODEL_FEATURES, TARGET_COL
-from src.preprocessing import FlightTabularPreprocessor, PyTorchPreprocessor
 from src.inference import FlightDelayPredictor
 
 
