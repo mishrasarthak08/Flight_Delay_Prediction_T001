@@ -178,7 +178,7 @@ class ModelHyperparams:
     xgb_reg_lambda: float = 5.0
     xgb_min_child_weight: float = 20.0
 
-    # PyTorch Embedding MLP
+    # PyTorch Embedding MLP & Deep ResNet
     mlp_carrier_emb_dim: int = 16
     mlp_origin_emb_dim: int = 16
     mlp_dest_emb_dim: int = 32
@@ -189,6 +189,18 @@ class ModelHyperparams:
     mlp_batch_size: int = 512
     mlp_epochs: int = 20
     mlp_early_stopping_patience: int = 5
+
+    # Deep Tabular ResNet (Phase 2 DL)
+    resnet_hidden_dim: int = 128
+    resnet_num_blocks: int = 3
+    resnet_dropout: float = 0.2
+    resnet_use_layernorm: bool = False
+
+    # Hybrid ML-DL Model (Phase 2 Innovation)
+    hybrid_fusion_strategy: str = "gated_stacking"  # 'gated_stacking', 'adaptive_gating', 'weighted_average'
+    hybrid_meta_l2: float = 1e-2
+    hybrid_xgb_weight_init: float = 0.5
+    hybrid_dl_weight_init: float = 0.5
 
 
 @dataclass
